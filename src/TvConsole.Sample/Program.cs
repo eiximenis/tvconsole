@@ -7,10 +7,11 @@ namespace TvConsole.Sample
     {
         static void Main(string[] args)
         {
-            TvConsole.Default.SetFullScreen(fullScreen: true);
-            TvConsole.Default.DisableMode(Win32.ConsoleModes.ENABLE_QUICK_EDIT_MODE);
+            var terminal = TvConsole.Default.GetVirtualTerminal();
+            terminal.DrawBorder();
 
-            TvConsole.Default.WriteLine("Hello {0} {1}", "World", TvConsole.Default.IsOutputRedirected);
+
+            /* TvConsole.Default.WriteLine("Hello {0} {1}", "World", TvConsole.Default.IsOutputRedirected);
             while (true)
             {
 
@@ -29,6 +30,9 @@ namespace TvConsole.Sample
 
 
             }
+            */
+
+            TvConsole.Default.Read();
 
         }
     }

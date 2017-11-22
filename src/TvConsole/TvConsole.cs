@@ -32,34 +32,59 @@ namespace TvConsole
 
         public TvConsoleStreamProperties OutProperties { get; }
         public TvConsoleStreamProperties InProperties { get; }
-
-        public void SetFullScreen (bool fullScreen)
+       
+        
+        public bool IsInputModeEnabled(ConsoleInputModes modeToCheck)
         {
-            var ok = ConsoleNative.SetConsoleDisplayMode(_hstdout, 1, out COORD newCoords);
-            var err = Marshal.GetLastWin32Error();
+            ConsoleNative.GetConsoleMode(_hstdin, out uint currentMode);
+            return (currentMode & (uint)modeToCheck) == (uint)modeToCheck;
         }
 
-        public bool IsModeEnabled(ConsoleModes modeToCheck)
-        {
-            ConsoleNative.GetConsoleMode(_hstdin, out ConsoleModes currentMode);
-            return (currentMode & modeToCheck) == modeToCheck;
-        }
 
-        public void EnableMode(ConsoleModes modeToEnable)
+        public void EnableInputMode(ConsoleInputModes modeToEnable)
         {
-            ConsoleNative.GetConsoleMode(_hstdin, out ConsoleModes currentMode);
-            var newMode = currentMode | modeToEnable;
+            ConsoleNative.GetConsoleMode(_hstdin, out uint currentMode);
+            var newMode = (uint)currentMode | (uint)modeToEnable;
             ConsoleNative.SetConsoleMode(_hstdin, newMode);
         }
 
-        public void DisableMode(ConsoleModes modeToDisable)
+        public void DisableInputMode(ConsoleInputModes modeToDisable)
         {
-            ConsoleNative.GetConsoleMode(_hstdin, out ConsoleModes currentMode);
-            var newMode = currentMode & ~modeToDisable;
+            ConsoleNative.GetConsoleMode(_hstdin, out uint currentMode);
+            var newMode = (uint)currentMode & (uint)~modeToDisable;
             ConsoleNative.SetConsoleMode(_hstdin, newMode);
         }
 
+        public bool IsOutputModeEnabled(ConsoleOutputModes modeToCheck)
+        {
+            ConsoleNative.GetConsoleMode(_hstdout, out uint currentMode);
+            return (currentMode & (uint)modeToCheck) == (uint)modeToCheck;
+        }
 
+        public void EnableOutputMode(ConsoleOutputModes modeToEnable)
+        {
+            ConsoleNative.GetConsoleMode(_hstdout, out uint currentMode);
+            var newMode = (uint)currentMode | (uint)modeToEnable;
+            ConsoleNative.SetConsoleMode(_hstdout, newMode);
+        }
+
+        public void DisableOutputMode(ConsoleOutputModes modeToDisable)
+        {
+            ConsoleNative.GetConsoleMode(_hstdout, out uint currentMode);
+            var newMode = (uint)currentMode & (uint)~modeToDisable;
+            ConsoleNative.SetConsoleMode(_hstdout, newMode);
+        }
+
+        public TvVirtualTerminal GetVirtualTerminal()
+        {
+
+            if (!IsOutputModeEnabled(ConsoleOutputModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING))
+            {
+                EnableOutputMode(ConsoleOutputModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+
+            return new TvVirtualTerminal(this);
+        }
 
         private TvConsole(bool allowRedirect, bool forceFileApi)
         {

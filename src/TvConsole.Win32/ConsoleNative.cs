@@ -525,7 +525,7 @@ namespace TvConsole.Win32
     }
 
     [Flags]
-    public enum ConsoleModes : uint
+    public enum ConsoleInputModes : uint
     {
         ENABLE_ECHO_INPUT = 0x0004,
         ENABLE_INSERT_MODE = 0x0020,
@@ -534,7 +534,11 @@ namespace TvConsole.Win32
         ENABLE_PROCESSED_INPUT = 0x0001,
         ENABLE_QUICK_EDIT_MODE = 0x0040,
         ENABLE_WINDOW_INPUT = 0x0008,
-        ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200,
+        ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200
+    }
+
+    public enum ConsoleOutputModes : uint
+    {
         ENABLE_PROCESSED_OUTPUT = 0x001,
         ENABLE_WRAP_AT_EOL_OUTPUT = 0x0002,
         ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004,
@@ -580,10 +584,10 @@ namespace TvConsole.Win32
         public static extern uint GetConsoleCP();
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool SetConsoleMode(IntPtr hConsoleHandle, ConsoleModes dwMode);
+        public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool GetConsoleMode(IntPtr hConsoleHandle, [Out] out ConsoleModes dwMode);
+        public static extern bool GetConsoleMode(IntPtr hConsoleHandle, [Out] out uint dwMode);
 
     }
 }
