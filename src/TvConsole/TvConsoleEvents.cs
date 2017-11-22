@@ -10,13 +10,17 @@ namespace TvConsole
 
         private static TvConsoleEvents _emptyInstance = new TvConsoleEvents();
         private readonly List<TvConsoleKeyboardEvent> _keyboardEvents;
+        private readonly List<TvConsoleMouseEvent> _mouseEvents;
 
         public static TvConsoleEvents Empty => _emptyInstance;
         public IEnumerable<TvConsoleKeyboardEvent> KeyboardEvents  => _keyboardEvents;
 
+        public IEnumerable<TvConsoleMouseEvent> MouseEvents => _mouseEvents;
+
         private TvConsoleEvents()
         {
             _keyboardEvents = new List<TvConsoleKeyboardEvent>();
+            _mouseEvents = new List<TvConsoleMouseEvent>();
         }
 
 
@@ -34,6 +38,7 @@ namespace TvConsole
                     case ConsoleEventTypes.MENU_EVENT:
                         break;
                     case ConsoleEventTypes.MOUSE_EVENT:
+                        _mouseEvents.Add(new TvConsoleMouseEvent(record.MouseEvent));
                         break;
                     case ConsoleEventTypes.WINDOW_BUFFER_SIZE_EVENT:
                         break;

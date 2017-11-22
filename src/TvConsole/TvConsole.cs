@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using TvConsole.Extensions;
 using TvConsole.Win32;
@@ -31,6 +32,34 @@ namespace TvConsole
 
         public TvConsoleStreamProperties OutProperties { get; }
         public TvConsoleStreamProperties InProperties { get; }
+
+        public void SetFullScreen (bool fullScreen)
+        {
+            var ok = ConsoleNative.SetConsoleDisplayMode(_hstdout, 1, out COORD newCoords);
+            var err = Marshal.GetLastWin32Error();
+        }
+
+        public bool IsModeEnabled(ConsoleModes modeToCheck)
+        {
+            ConsoleNative.GetConsoleMode(_hstdin, out ConsoleModes currentMode);
+            return (currentMode & modeToCheck) == modeToCheck;
+        }
+
+        public void EnableMode(ConsoleModes modeToEnable)
+        {
+            ConsoleNative.GetConsoleMode(_hstdin, out ConsoleModes currentMode);
+            var newMode = currentMode | modeToEnable;
+            ConsoleNative.SetConsoleMode(_hstdin, newMode);
+        }
+
+        public void DisableMode(ConsoleModes modeToDisable)
+        {
+            ConsoleNative.GetConsoleMode(_hstdin, out ConsoleModes currentMode);
+            var newMode = currentMode & ~modeToDisable;
+            ConsoleNative.SetConsoleMode(_hstdin, newMode);
+        }
+
+
 
         private TvConsole(bool allowRedirect, bool forceFileApi)
         {
@@ -131,6 +160,7 @@ namespace TvConsole
         public TvConsoleEvents ReadEvents()
         {
             ConsoleNative.GetNumberOfConsoleInputEvents(_hstdin, out uint numEvents);
+
             if (numEvents > 0)
             {
                 var buffer = new INPUT_RECORD[numEvents];

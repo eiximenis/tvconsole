@@ -428,7 +428,7 @@ namespace TvConsole.Win32
             this.Y = Y;
         }
     };
-   
+
     public enum ConsoleEventTypes : ushort
     {
         FOCUS_EVENT = 0x0010,
@@ -506,7 +506,7 @@ namespace TvConsole.Win32
     {
         public uint bSetFocus;
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     public struct CONSOLE_READCONSOLE_CONTROL
     {
@@ -522,6 +522,24 @@ namespace TvConsole.Win32
             this.dwCtrlWakeupMask = dwCtrlWakeupMask;
             this.nLength = (ulong)Marshal.SizeOf<CONSOLE_READCONSOLE_CONTROL>();
         }
+    }
+
+    [Flags]
+    public enum ConsoleModes : uint
+    {
+        ENABLE_ECHO_INPUT = 0x0004,
+        ENABLE_INSERT_MODE = 0x0020,
+        ENABLE_LINE_INPUT = 0x0002,
+        ENABLE_MOUSE_INPUT = 0x0010,
+        ENABLE_PROCESSED_INPUT = 0x0001,
+        ENABLE_QUICK_EDIT_MODE = 0x0040,
+        ENABLE_WINDOW_INPUT = 0x0008,
+        ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200,
+        ENABLE_PROCESSED_OUTPUT = 0x001,
+        ENABLE_WRAP_AT_EOL_OUTPUT = 0x0002,
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004,
+        DISABLE_NEWLINE_AUTO_RETURN = 0x0008,
+        ENABLE_LVB_GRID_WORLDWIDE = 0x0010
     }
 
     public static class ConsoleNative
@@ -560,5 +578,12 @@ namespace TvConsole.Win32
 
         [DllImport("kernel32.dll")]
         public static extern uint GetConsoleCP();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetConsoleMode(IntPtr hConsoleHandle, ConsoleModes dwMode);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetConsoleMode(IntPtr hConsoleHandle, [Out] out ConsoleModes dwMode);
+
     }
 }
