@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using TvConsole.Extensions;
@@ -7,39 +10,108 @@ using TvConsole.Win32;
 
 namespace TvConsole
 {
-    public class TvConsole
+    public class TvConsole : IScreenBuffer
     {
         private const int STDIN = -10;
         private const int STDOUT = -11;
-        private static Lazy<TvConsole> _instance;
 
-        public static TvConsole Default => _instance.Value;
+        public static TvConsole Instance { get; private set; }
 
         private readonly IntPtr _hstdin;
         private readonly IntPtr _hstdout;
+        private ISecondaryScreenBuffer _currentBuffer;
 
+
+        private void Destroy()
+        {
+            Out?.Dispose();
+            In?.Dispose();
+            Instance = null;
+        }
 
         static TvConsole()
         {
-            _instance = new Lazy<TvConsole>(() => new TvConsole(allowRedirect: true, forceFileApi: false));
+            Instance = new TvConsole(allowRedirect: true, forceFileApi: false);
         }
+
+        public ISecondaryScreenBuffer ActivateNewScreenBuffer()
+        {
+            var buffer = CreateNewScreenBuffer();
+            buffer.Activate();
+            return buffer;
+        }
+
+        public ISecondaryScreenBuffer ActivateDefaultScreenBuffer() => ActivateScreenBuffer(DefaultBuffer);
+
+        public ISecondaryScreenBuffer ActivateScreenBuffer(ISecondaryScreenBuffer screenBuffer)
+        {
+            screenBuffer.Activate();
+            return screenBuffer;
+        }
+
+        public ISecondaryScreenBuffer CreateNewScreenBuffer()
+        {
+            IntPtr handle = ConsoleNative.CreateConsoleScreenBuffer(
+                AccessMode.GENERIC_READ | AccessMode.GENERIC_WRITE,
+                ShareMode.FILE_SHARE_WRITE, IntPtr.Zero, ScreenBufferFlags.CONSOLE_TEXTMODE_BUFFER, IntPtr.Zero);
+
+            if (handle.ToInt32() == -1)
+            {
+                var err = Marshal.GetLastWin32Error();
+                throw new InvalidOperationException($"Can't create a new screen buffer (err: {err})");
+            }
+
+            var newBuffer = new TvScreenBuffer(handle, this, outputRedirected: false, forceFileApi: false, disposable: true);
+            return newBuffer;
+        }
+
+        public void Cls() => _currentBuffer.Cls();
 
         public bool IsInputRedirected { get; }
         public bool IsOutputRedirected { get; }
-
-        public TextWriter Out { get; }
+        public TvConsoleStreamProperties InProperties { get; }
         public TextReader In { get; }
 
-        public TvConsoleStreamProperties OutProperties { get; }
-        public TvConsoleStreamProperties InProperties { get; }
-       
-        
+        public TextWriter Out => _currentBuffer.Out;
+        public TvConsoleStreamProperties OutProperties => _currentBuffer.OutProperties;
+
+        public TvCursor Cursor => _currentBuffer.Cursor;
+
+        public ISecondaryScreenBuffer DefaultBuffer { get; }
+
+        public TvFontManager FontManager { get; }
+
+        public void Close()
+        {
+            var ok = ConsoleNative.FreeConsole();
+            if (ok)
+            {
+                Destroy();
+            }
+        }
+
+        public static bool CreateConsole()
+        {
+            var ok = ConsoleNative.AllocConsole();
+            if (ok)
+            {
+                Instance = new TvConsole(allowRedirect: true, forceFileApi: false);
+            }
+
+            return ok;
+        }
+
         public bool IsInputModeEnabled(ConsoleInputModes modeToCheck)
         {
             ConsoleNative.GetConsoleMode(_hstdin, out uint currentMode);
             return (currentMode & (uint)modeToCheck) == (uint)modeToCheck;
         }
 
+
+        internal void SetBufferActive(ISecondaryScreenBuffer buffer)
+        {
+            _currentBuffer = buffer;
+        }
 
         public void EnableInputMode(ConsoleInputModes modeToEnable)
         {
@@ -93,23 +165,29 @@ namespace TvConsole
 
             IsInputRedirected = FileNative.GetFileType(_hstdin) != FILE_TYPE.FILE_TYPE_CHAR;
             IsOutputRedirected = FileNative.GetFileType(_hstdout) != FILE_TYPE.FILE_TYPE_CHAR;
-            OutProperties = new TvConsoleStreamProperties((int)ConsoleNative.GetConsoleOutputCP(), System.Console.OutputEncoding, IsOutputRedirected, forceFileApi);
-            Out = new StreamWriter(new TvConsoleStream(_hstdout, FileAccess.ReadWrite, OutProperties.UseFileApis), OutProperties.Encoding) { AutoFlush = true };
+            DefaultBuffer = new TvScreenBuffer(_hstdout, this, IsOutputRedirected, forceFileApi, disposable: false);
+            _currentBuffer = DefaultBuffer;
+            FontManager = new TvFontManager(_hstdout);
             InProperties = new TvConsoleStreamProperties((int)ConsoleNative.GetConsoleCP(), System.Console.InputEncoding, IsInputRedirected, forceFileApi);
             In = new StreamReader(new TvConsoleStream(_hstdin, FileAccess.Read, InProperties.UseFileApis), InProperties.Encoding,
                 detectEncodingFromByteOrderMarks: false,
                 bufferSize: 256,
                 leaveOpen: true);
 
+            var bufferInfo = CONSOLE_SCREEN_BUFFER_INFO_EX.New();
+            var ok = ConsoleNative.GetConsoleScreenBufferInfoEx(_hstdout, ref bufferInfo);
+            var err = Marshal.GetLastWin32Error();
+
             if (!allowRedirect && (IsInputRedirected || IsOutputRedirected))
             {
+                Destroy();
                 throw new InvalidOperationException("Console input and/or ouput is redirected and this is not allowed by current TvConsole.");
             }
         }
 
-        public void WriteLine(string message) => Out.WriteLine(message);
-        public void WriteLine(string format, params object[] @params) => WriteLine(string.Format(format, @params));
-
+        public void WriteLine(string message) => _currentBuffer.WriteLine(message);
+        public void WriteLine(string format, params object[] @params) => _currentBuffer.WriteLine(format, @params);
+        public void WriteLine() => _currentBuffer.WriteLine();
         public int Read() => In.Read();
 
         public string ReadLine() => In.ReadLine();
@@ -163,7 +241,7 @@ namespace TvConsole
             while (true)
             {
                 var evt = ReadConsoleEvent();
-                if (evt.EventType == ConsoleEventTypes.KEY_EVENT && !!evt.KeyEvent.wVirtualKeyCode.IsModifierKey())
+                if (evt.EventType == ConsoleEventTypes.KEY_EVENT && evt.KeyEvent.bKeyDown && !!evt.KeyEvent.wVirtualKeyCode.IsModifierKey())
                 {
                     return TvConsoleKeyboardEvent.AsConsoleKeyInfo(evt.KeyEvent);
                 }

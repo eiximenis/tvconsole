@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using COLORREF = System.UInt32;
 
 namespace TvConsole.Win32
 {
@@ -546,6 +547,94 @@ namespace TvConsole.Win32
         ENABLE_LVB_GRID_WORLDWIDE = 0x0010
     }
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public class CONSOLE_FONT_INFOEX
+    {
+        private int cbSize;
+        public CONSOLE_FONT_INFOEX()
+        {
+            cbSize = Marshal.SizeOf(typeof(CONSOLE_FONT_INFOEX));
+            //FaceName = new string('\0', 32);
+        }
+        public uint nFont;
+        public COORD dwFontSize;
+        public uint FontFamily;
+        public uint FontWeight;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]            // LF_FACESIZE == 32
+        public string FaceName;
+
+        //public bool IsBold() { return FontWeight >= 700; }
+    }
+
+    public enum AccessMode : uint
+    {
+        GENERIC_READ = 0x80000000,
+        GENERIC_WRITE = 0x40000000
+    }
+
+    public enum ShareMode : uint
+    {
+        FILE_SHARE_READ = 0x00000001,
+        FILE_SHARE_WRITE = 0x00000002
+    }
+
+    public enum ScreenBufferFlags : uint
+    {
+        CONSOLE_TEXTMODE_BUFFER = 0x00000001
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SMALL_RECT
+    {
+
+        public short Left;
+        public short Top;
+        public short Right;
+        public short Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CONSOLE_SCREEN_BUFFER_INFO
+    {
+
+        public COORD dwSize;
+        public COORD dwCursorPosition;
+        public short wAttributes;
+        public SMALL_RECT srWindow;
+        public COORD dwMaximumWindowSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CONSOLE_SCREEN_BUFFER_INFO_EX
+    {
+        public uint cbSize;
+        public COORD dwSize;
+        public COORD dwCursorPosition;
+        public short wAttributes;
+        public SMALL_RECT srWindow;
+        public COORD dwMaximumWindowSize;
+
+        public ushort wPopupAttributes;
+        public bool bFullscreenSupported;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public COLORREF[] ColorTable;
+
+        public static CONSOLE_SCREEN_BUFFER_INFO_EX New()
+        {
+            return new CONSOLE_SCREEN_BUFFER_INFO_EX() {
+                cbSize = (uint)Marshal.SizeOf<CONSOLE_SCREEN_BUFFER_INFO_EX>(),
+                ColorTable = new COLORREF[16]
+            };
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CONSOLE_CURSOR_INFO
+    {
+        uint Size;
+        bool Visible;
+    }
+
     public static class ConsoleNative
     {
         [DllImport("kernel32.dll", EntryPoint = "ReadConsoleInputW", CharSet = CharSet.Unicode)]
@@ -589,5 +678,42 @@ namespace TvConsole.Win32
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool GetConsoleMode(IntPtr hConsoleHandle, [Out] out uint dwMode);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern COORD GetConsoleFontSize(IntPtr hConsoleOutput, uint nFont);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool GetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow, [In, Out] CONSOLE_FONT_INFOEX lpConsoleCurrentFont);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool SetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow, [In] CONSOLE_FONT_INFOEX lpConsoleCurrentFont);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool FreeConsole();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool AllocConsole();
+
+        [DllImport("Kernel32.dll", SetLastError = true)]
+        public static extern IntPtr CreateConsoleScreenBuffer(AccessMode dwDesiredAccess, ShareMode dwShareMode,
+            IntPtr secutiryAttributes, ScreenBufferFlags flags, IntPtr screenBufferData);
+
+        [DllImport("Kernel32.dll", SetLastError = true)]
+        public static extern bool SetConsoleActiveScreenBuffer(IntPtr hConsoleOutput);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetConsoleScreenBufferInfo(IntPtr hConsoleOutput, out CONSOLE_SCREEN_BUFFER_INFO ConsoleScreenBufferInfo);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetConsoleScreenBufferInfoEx(IntPtr hConsoleOutput, ref CONSOLE_SCREEN_BUFFER_INFO_EX ConsoleScreenBufferInfo);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool FillConsoleOutputCharacter(IntPtr hConsoleOutput, char cCharacter, uint nLength, COORD dwWriteCoord, out uint lpNumberOfCharsWritten);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetConsoleCursorPosition(IntPtr hConsoleOutput,COORD dwCursorPosition);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetConsoleCursorInfo( IntPtr hConsoleOutput, out CONSOLE_CURSOR_INFO lpConsoleCursorInfo);
     }
+
 }

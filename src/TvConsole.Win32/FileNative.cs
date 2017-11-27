@@ -58,6 +58,5 @@ namespace TvConsole.Win32
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool ReadFile(HANDLE hFile, byte[] lpBuffer, DWORD nNumberOfBytesToRead, [Out] out DWORD lpNumberOfBytesRead, [Out] IntPtr lpOverlapped);
 
-
     }
 }
