@@ -248,6 +248,9 @@ namespace TvConsole
             }
         }
 
+        public TvConsoleColor Color(ConsoleColor color) => _currentBuffer.Color(color);
+
+
         private int ReadChunk(char[] buffer)
         {
             ConsoleNative.ReadConsole(_hstdin, buffer, (uint)buffer.Length, out IntPtr charsRead, IntPtr.Zero);

@@ -621,7 +621,8 @@ namespace TvConsole.Win32
 
         public static CONSOLE_SCREEN_BUFFER_INFO_EX New()
         {
-            return new CONSOLE_SCREEN_BUFFER_INFO_EX() {
+            return new CONSOLE_SCREEN_BUFFER_INFO_EX()
+            {
                 cbSize = (uint)Marshal.SizeOf<CONSOLE_SCREEN_BUFFER_INFO_EX>(),
                 ColorTable = new COLORREF[16]
             };
@@ -710,10 +711,13 @@ namespace TvConsole.Win32
         public static extern bool FillConsoleOutputCharacter(IntPtr hConsoleOutput, char cCharacter, uint nLength, COORD dwWriteCoord, out uint lpNumberOfCharsWritten);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool SetConsoleCursorPosition(IntPtr hConsoleOutput,COORD dwCursorPosition);
+        public static extern bool SetConsoleCursorPosition(IntPtr hConsoleOutput, COORD dwCursorPosition);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool GetConsoleCursorInfo( IntPtr hConsoleOutput, out CONSOLE_CURSOR_INFO lpConsoleCursorInfo);
+        public static extern bool GetConsoleCursorInfo(IntPtr hConsoleOutput, out CONSOLE_CURSOR_INFO lpConsoleCursorInfo);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetConsoleTextAttribute(IntPtr hConsoleOutput, ushort wAttributes);
     }
 
 }

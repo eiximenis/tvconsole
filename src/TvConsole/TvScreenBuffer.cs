@@ -14,6 +14,8 @@ namespace TvConsole
 
         public TvCursor Cursor { get; }
 
+        public TvConsoleColor Color(ConsoleColor color) => new TvConsoleColor(_hstdout, color);
+
         public TvConsoleStreamProperties OutProperties { get; }
         public TextWriter Out { get; }
         public TvScreenBuffer(IntPtr handle, TvConsole owner, bool outputRedirected, bool forceFileApi, bool disposable)

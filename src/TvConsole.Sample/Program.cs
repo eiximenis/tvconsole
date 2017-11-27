@@ -37,6 +37,7 @@ namespace TvConsole.Sample
         {
             TvConsole.Instance.WriteLine("1 - Multiple screen buffers");
             TvConsole.Instance.WriteLine("2 - Cursor movement");
+            TvConsole.Instance.WriteLine("3 - Fonts & colors");
             TvConsole.Instance.WriteLine("0 - Exit");
         }
 
@@ -54,13 +55,45 @@ namespace TvConsole.Sample
                 {
                     case '1': MultipleScreenBuffers(); break;
                     case '2': CursorMove(); break;
-                    case '0': exit = false; break;
+                    case '3': FontsAndColors(); break;
+                    case '0': exit = true; break;
                     default:
                         TvConsole.Instance.WriteLine($"Invalid otion: {key.KeyChar}");
                         PrintMenu();
                         break;
                 }
             }
+        }
+
+        private static void FontsAndColors()
+        {
+            using (TvConsole.Instance.Color(ConsoleColor.Red))
+            {
+                TvConsole.Instance.WriteLine("This is in red.");
+                using (TvConsole.Instance.Color(ConsoleColor.Blue))
+                {
+                    TvConsole.Instance.WriteLine("And this is in blue");
+                    using (TvConsole.Instance.Color(ConsoleColor.Green))
+                    {
+                        TvConsole.Instance.WriteLine("Let's switch to green");
+                    }
+                    TvConsole.Instance.WriteLine("And blue again.");
+                }
+                TvConsole.Instance.WriteLine("And once again in red.");
+            }
+
+            using (TvConsole.Instance.Color(ConsoleColor.DarkYellow))
+            {
+                TvConsole.Instance.WriteLine("Some text in yellow...");
+                using (TvConsole.Instance.Color(ConsoleColor.Yellow))
+                {
+                    TvConsole.Instance.WriteLine("And in bright yellow too!");
+                }
+            }
+
+            TvConsole.Instance.WriteLine("This is written in default color.");
+            TvConsole.Instance.WriteLine("Press <enter> to return.");
+            TvConsole.Instance.ReadLine();
         }
 
         private static void CursorMove()

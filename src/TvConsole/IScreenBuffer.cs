@@ -20,6 +20,7 @@ namespace TvConsole
 
     public interface ISecondaryScreenBuffer : IScreenBuffer, IDisposable
     {
+        TvConsoleColor Color(ConsoleColor color);
 
         bool Activate();
         void Close();
