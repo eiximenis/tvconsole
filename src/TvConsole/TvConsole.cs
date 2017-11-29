@@ -185,9 +185,13 @@ namespace TvConsole
             }
         }
 
+        public void Write(string message) => _currentBuffer.Write(message);
         public void WriteLine(string message) => _currentBuffer.WriteLine(message);
         public void WriteLine(string format, params object[] @params) => _currentBuffer.WriteLine(format, @params);
         public void WriteLine() => _currentBuffer.WriteLine();
+
+
+
         public int Read() => In.Read();
 
         public string ReadLine() => In.ReadLine();
@@ -248,7 +252,24 @@ namespace TvConsole
             }
         }
 
-        public TvConsoleColor Color(ConsoleColor color) => _currentBuffer.Color(color);
+        public TvConsoleColor ForeColor(ConsoleColor foreground) => _currentBuffer.ForeColor(foreground);
+        public TvConsoleColor BackColor(ConsoleColor background) => _currentBuffer.BackColor(background);
+        public TvConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background) => _currentBuffer.CharacterColor(foreground, background);
+
+        public TvConsoleColor ColorScope => _currentBuffer.ColorScope;
+
+        public ConsoleColor ForegroundColor
+        {
+            get => _currentBuffer.ForegroundColor;
+            set => _currentBuffer.ForegroundColor = value;
+        }
+
+        public ConsoleColor BackgroundColor
+        {
+            get => _currentBuffer.BackgroundColor;
+            set => _currentBuffer.BackgroundColor = value;
+        }
+
 
 
         private int ReadChunk(char[] buffer)

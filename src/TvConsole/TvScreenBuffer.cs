@@ -14,7 +14,43 @@ namespace TvConsole
 
         public TvCursor Cursor { get; }
 
-        public TvConsoleColor Color(ConsoleColor color) => new TvConsoleColor(_hstdout, color);
+        public TvConsoleColor ForeColor(ConsoleColor foreground) => new TvConsoleColor(_hstdout, foreground);
+        public TvConsoleColor BackColor(ConsoleColor background) => new TvConsoleColor(_hstdout, forecolor: null, backColor: background);
+        public TvConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background) => new TvConsoleColor(_hstdout, foreground, background);
+        public TvConsoleColor ColorScope => TvConsoleColor.None(_hstdout);
+
+        public ConsoleColor BackgroundColor
+        {
+            get
+            {
+                ConsoleNative.GetConsoleScreenBufferInfo(_hstdout, out CONSOLE_SCREEN_BUFFER_INFO info);
+                return TvConsoleColor.AttributesToBackConsoleColor((ushort)info.wAttributes);
+            }
+            set
+            {
+                ConsoleNative.GetConsoleScreenBufferInfo(_hstdout, out CONSOLE_SCREEN_BUFFER_INFO info);
+                var currentAttributes = (ushort)info.wAttributes;
+                var backAttributes = TvConsoleColor.BackConsoleColorToAttribute(value);
+                ConsoleNative.SetConsoleTextAttribute(_hstdout, (ushort)(backAttributes | TvConsoleColor.OnlyForegroundAttributes(currentAttributes)));
+            }
+        }
+
+        public ConsoleColor ForegroundColor
+        {
+            get
+            {
+                ConsoleNative.GetConsoleScreenBufferInfo(_hstdout, out CONSOLE_SCREEN_BUFFER_INFO info);
+                return TvConsoleColor.AttributesToForeConsoleColor((ushort)info.wAttributes);
+            }
+
+            set
+            {
+                ConsoleNative.GetConsoleScreenBufferInfo(_hstdout, out CONSOLE_SCREEN_BUFFER_INFO info);
+                var currentAttributes = (ushort)info.wAttributes;
+                var foreAttributes = TvConsoleColor.ForeConsoleColorToAttribute(value);
+                ConsoleNative.SetConsoleTextAttribute(_hstdout, (ushort)(foreAttributes | TvConsoleColor.OnlyBackgroundAttributes(currentAttributes)));
+            }
+        }
 
         public TvConsoleStreamProperties OutProperties { get; }
         public TextWriter Out { get; }
@@ -38,6 +74,8 @@ namespace TvConsole
         }
 
         public void WriteLine() => Out.WriteLine();
+
+        public void Write(string message) => Out.Write(message);
 
         public bool Activate()
         {
@@ -80,7 +118,7 @@ namespace TvConsole
         public void Dispose()
         {
             if (!_isDisposable) { return; }
-            
+
             Dispose(true);
             GC.SuppressFinalize(this);
         }

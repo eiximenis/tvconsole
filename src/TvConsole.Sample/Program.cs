@@ -67,34 +67,27 @@ namespace TvConsole.Sample
 
         private static void FontsAndColors()
         {
-            using (TvConsole.Instance.Color(ConsoleColor.Red))
+            var values = Enum.GetValues(typeof(ConsoleColor));
+            TvConsole.Instance.WriteLine("--- Color Table ---");
+            using (TvConsole.Instance.ColorScope)
             {
-                TvConsole.Instance.WriteLine("This is in red.");
-                using (TvConsole.Instance.Color(ConsoleColor.Blue))
+                foreach (ConsoleColor value in values)
                 {
-                    TvConsole.Instance.WriteLine("And this is in blue");
-                    using (TvConsole.Instance.Color(ConsoleColor.Green))
+                    TvConsole.Instance.ForegroundColor = value;
+                    foreach (ConsoleColor bvalue in values)
                     {
-                        TvConsole.Instance.WriteLine("Let's switch to green");
+                        TvConsole.Instance.BackgroundColor = bvalue;
+                        TvConsole.Instance.Write($"{Enum.GetName(typeof(ConsoleColor), bvalue)}");
                     }
-                    TvConsole.Instance.WriteLine("And blue again.");
-                }
-                TvConsole.Instance.WriteLine("And once again in red.");
-            }
-
-            using (TvConsole.Instance.Color(ConsoleColor.DarkYellow))
-            {
-                TvConsole.Instance.WriteLine("Some text in yellow...");
-                using (TvConsole.Instance.Color(ConsoleColor.Yellow))
-                {
-                    TvConsole.Instance.WriteLine("And in bright yellow too!");
+                    TvConsole.Instance.WriteLine();
                 }
             }
 
-            TvConsole.Instance.WriteLine("This is written in default color.");
-            TvConsole.Instance.WriteLine("Press <enter> to return.");
+            TvConsole.Instance.WriteLine("--- End of table color---");
             TvConsole.Instance.ReadLine();
         }
+
+
 
         private static void CursorMove()
         {

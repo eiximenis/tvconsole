@@ -20,12 +20,74 @@ namespace TvConsole
 
         private readonly IntPtr _hstdout;
         private readonly short _oldAttributes;
-        internal TvConsoleColor(IntPtr handle, ConsoleColor color)
+
+        internal TvConsoleColor(IntPtr handle, ConsoleColor? forecolor) : this(handle, forecolor, null) { }
+        internal TvConsoleColor(IntPtr handle, ConsoleColor? forecolor, ConsoleColor? backColor)
         {
             _hstdout = handle;
             ConsoleNative.GetConsoleScreenBufferInfo(_hstdout, out CONSOLE_SCREEN_BUFFER_INFO info);
             _oldAttributes = info.wAttributes;
-            ConsoleNative.SetConsoleTextAttribute(_hstdout, ConsoleColorToAttribute(color));
+            var attributes = forecolor.HasValue ? ForeConsoleColorToAttribute(forecolor.Value) : (ushort)(_oldAttributes & (FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY));
+            attributes |= backColor.HasValue ? BackConsoleColorToAttribute(backColor.Value) : (ushort)(_oldAttributes & (BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY));
+            ConsoleNative.SetConsoleTextAttribute(_hstdout, attributes);
+        }
+
+        internal static ushort OnlyForegroundAttributes(ushort attributes) => (ushort)(attributes & ~(BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY));
+        internal static ushort OnlyBackgroundAttributes(ushort attributes) => (ushort)(attributes & ~(FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY));
+
+        internal static TvConsoleColor None(IntPtr handle) => new TvConsoleColor(handle, forecolor: null, backColor: null);
+
+        internal static ConsoleColor AttributesToForeConsoleColor(ushort attributes)
+        {
+            var onlyFore = OnlyForegroundAttributes(attributes);
+            switch (onlyFore)
+            {
+                case 0: return ConsoleColor.Black;
+                case FOREGROUND_INTENSITY: return ConsoleColor.Gray;
+                case FOREGROUND_BLUE | FOREGROUND_INTENSITY: return ConsoleColor.Blue;
+                case FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY: return ConsoleColor.Cyan;
+                case FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY: return ConsoleColor.Magenta;
+                case FOREGROUND_RED | FOREGROUND_INTENSITY: return ConsoleColor.Red;
+                case FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY: return ConsoleColor.White;
+                case FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY: return ConsoleColor.Yellow;
+                case FOREGROUND_GREEN | FOREGROUND_INTENSITY: return ConsoleColor.Green;
+
+                case FOREGROUND_BLUE: return ConsoleColor.DarkBlue;
+                case FOREGROUND_BLUE | FOREGROUND_GREEN: return ConsoleColor.DarkCyan;
+                case FOREGROUND_BLUE | FOREGROUND_RED: return ConsoleColor.DarkMagenta;
+                case FOREGROUND_RED: return ConsoleColor.DarkRed;
+                case FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE: return ConsoleColor.Gray;
+                case FOREGROUND_RED | FOREGROUND_GREEN: return ConsoleColor.DarkYellow;
+                case FOREGROUND_GREEN: return ConsoleColor.DarkGreen;
+            }
+
+            return ConsoleColor.Gray;
+        }
+
+        internal static ConsoleColor AttributesToBackConsoleColor(ushort attributes)
+        {
+            var onlyBack = OnlyBackgroundAttributes(attributes);
+            switch (onlyBack)
+            {
+                case 0: return ConsoleColor.Black;
+                case BACKGROUND_INTENSITY: return ConsoleColor.Gray;
+                case BACKGROUND_BLUE | BACKGROUND_INTENSITY: return ConsoleColor.Blue;
+                case BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY: return ConsoleColor.Cyan;
+                case BACKGROUND_BLUE | BACKGROUND_RED | BACKGROUND_INTENSITY: return ConsoleColor.Magenta;
+                case BACKGROUND_RED | BACKGROUND_INTENSITY: return ConsoleColor.Red;
+                case BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY: return ConsoleColor.White;
+                case BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_INTENSITY: return ConsoleColor.Yellow;
+                case BACKGROUND_GREEN | BACKGROUND_INTENSITY: return ConsoleColor.Green;
+                case BACKGROUND_BLUE: return ConsoleColor.DarkBlue;
+                case BACKGROUND_BLUE | BACKGROUND_GREEN: return ConsoleColor.DarkCyan;
+                case BACKGROUND_BLUE | BACKGROUND_RED: return ConsoleColor.DarkMagenta;
+                case BACKGROUND_RED: return ConsoleColor.DarkRed;
+                case BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE: return ConsoleColor.Gray;
+                case BACKGROUND_RED | BACKGROUND_GREEN: return ConsoleColor.DarkYellow;
+                case BACKGROUND_GREEN: return ConsoleColor.DarkGreen;
+            }
+
+            return ConsoleColor.Gray;
         }
 
         public void Dispose()
@@ -33,7 +95,7 @@ namespace TvConsole
             ConsoleNative.SetConsoleTextAttribute(_hstdout, (ushort)_oldAttributes);
         }
 
-        private ushort ConsoleColorToAttribute(ConsoleColor color)
+        internal static ushort ForeConsoleColorToAttribute(ConsoleColor color)
         {
             switch (color)
             {
@@ -46,7 +108,7 @@ namespace TvConsole
                 case ConsoleColor.Green:
                     return FOREGROUND_GREEN | FOREGROUND_INTENSITY;
                 case ConsoleColor.Magenta:
-                    return FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+                    return FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY;
                 case ConsoleColor.Red:
                     return FOREGROUND_RED | FOREGROUND_INTENSITY;
                 case ConsoleColor.White:
@@ -62,13 +124,54 @@ namespace TvConsole
                 case ConsoleColor.DarkGreen:
                     return FOREGROUND_GREEN;
                 case ConsoleColor.DarkMagenta:
-                    return FOREGROUND_BLUE | FOREGROUND_GREEN;
+                    return FOREGROUND_BLUE | FOREGROUND_RED;
                 case ConsoleColor.DarkRed:
                     return FOREGROUND_RED;
                 case ConsoleColor.DarkYellow:
                     return FOREGROUND_RED | FOREGROUND_GREEN;
                 case ConsoleColor.Gray:
-                    return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+                    return FOREGROUND_INTENSITY;
+                default:
+                    return 0;
+            }
+        }
+
+        internal static ushort BackConsoleColorToAttribute(ConsoleColor color)
+        {
+            switch (color)
+            {
+                case ConsoleColor.Black:
+                    return (ushort)0;
+                case ConsoleColor.Blue:
+                    return BACKGROUND_BLUE | BACKGROUND_INTENSITY;
+                case ConsoleColor.Cyan:
+                    return BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_INTENSITY;
+                case ConsoleColor.Green:
+                    return BACKGROUND_GREEN | BACKGROUND_INTENSITY;
+                case ConsoleColor.Magenta:
+                    return BACKGROUND_BLUE | BACKGROUND_RED | BACKGROUND_INTENSITY;
+                case ConsoleColor.Red:
+                    return BACKGROUND_RED | BACKGROUND_INTENSITY;
+                case ConsoleColor.White:
+                    return BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE | BACKGROUND_INTENSITY;
+                case ConsoleColor.Yellow:
+                    return BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_INTENSITY;
+                case ConsoleColor.DarkBlue:
+                    return BACKGROUND_BLUE;
+                case ConsoleColor.DarkCyan:
+                    return BACKGROUND_BLUE | BACKGROUND_GREEN;
+                case ConsoleColor.DarkGray:
+                    return BACKGROUND_RED | BACKGROUND_GREEN | BACKGROUND_BLUE;
+                case ConsoleColor.DarkGreen:
+                    return BACKGROUND_GREEN;
+                case ConsoleColor.DarkMagenta:
+                    return BACKGROUND_BLUE | BACKGROUND_RED;
+                case ConsoleColor.DarkRed:
+                    return BACKGROUND_RED;
+                case ConsoleColor.DarkYellow:
+                    return BACKGROUND_RED | BACKGROUND_GREEN;
+                case ConsoleColor.Gray:
+                    return BACKGROUND_INTENSITY;
                 default:
                     return 0;
             }

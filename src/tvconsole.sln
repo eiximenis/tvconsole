@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2002
+VisualStudioVersion = 15.0.27110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TvConsole.Win32", "TvConsole.Win32\TvConsole.Win32.csproj", "{07C5A691-398C-4BEE-A238-69A68B6048CC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TvConsole", "TvConsole\TvConsole.csproj", "{BEC410FA-6164-4D9E-B76B-73959E402367}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TvConsole.Sample", "TvConsole.Sample\TvConsole.Sample.csproj", "{9B97A04D-6FFD-4F79-8D11-2E64018165BD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{561AB3D5-981D-4C9F-8587-08F64ACDEF0A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +32,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9B97A04D-6FFD-4F79-8D11-2E64018165BD} = {561AB3D5-981D-4C9F-8587-08F64ACDEF0A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8636606F-93ED-4930-A462-70F06E771B8E}
