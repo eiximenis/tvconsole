@@ -132,6 +132,7 @@ namespace TvConsole
             COORD curPos = new COORD(0, 0);
             var numChars = info.dwSize.X * info.dwSize.Y;
             ConsoleNative.FillConsoleOutputCharacter(_hstdout, ' ', (uint)numChars, curPos, out var numWritten);
+            ConsoleNative.FillConsoleOutputAttribute(_hstdout, (ushort)info.wAttributes, (uint)numChars, curPos, out var attrsWritten);
             ConsoleNative.SetConsoleCursorPosition(_hstdout, curPos);
         }
     }

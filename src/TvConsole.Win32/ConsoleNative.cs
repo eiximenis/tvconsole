@@ -718,6 +718,9 @@ namespace TvConsole.Win32
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetConsoleTextAttribute(IntPtr hConsoleOutput, ushort wAttributes);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool FillConsoleOutputAttribute(IntPtr hConsoleOutput, ushort wAttribute, uint nLength, COORD dwWriteCoord, out uint lpNumberOfAttrsWritten);
     }
 
 }

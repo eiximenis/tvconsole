@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using TvConsole.Win32;
 
@@ -16,6 +17,8 @@ namespace TvConsole
         public IEnumerable<TvConsoleKeyboardEvent> KeyboardEvents  => _keyboardEvents;
 
         public IEnumerable<TvConsoleMouseEvent> MouseEvents => _mouseEvents;
+
+        public bool HasEvents => _keyboardEvents.Any() || _mouseEvents.Any();
 
         private TvConsoleEvents()
         {

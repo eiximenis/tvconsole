@@ -12,25 +12,6 @@ namespace TvConsole.Sample
             TvConsole.Instance.WriteLine();
 
             DoMenu();
-
-            //TvConsole.Default.DisableInputMode(Win32.ConsoleInputModes.ENABLE_QUICK_EDIT_MODE);
-            //while (true)
-            //{
-            //    var events = TvConsole.Default.ReadEvents();
-            //    foreach (var ke in events.KeyboardEvents)
-            //    {
-            //        var info = ke.AsConsoleKeyInfo();
-            //        TvConsole.Default.WriteLine($"{info.KeyChar} ({info.Key.ToString()}). shitft: {(info.Modifiers & ConsoleModifiers.Shift) != 0} down: {ke.IsKeyDown}");
-            //    }
-
-            //    foreach (var me in events.MouseEvents)
-            //    {
-
-            //        TvConsole.Default.WriteLine($"Mouse in: ({me.X},{me.Y})");
-            //    }
-
-
-            //}
         }
 
         private static void PrintMenu()
@@ -38,6 +19,7 @@ namespace TvConsole.Sample
             TvConsole.Instance.WriteLine("1 - Multiple screen buffers");
             TvConsole.Instance.WriteLine("2 - Cursor movement");
             TvConsole.Instance.WriteLine("3 - Fonts & colors");
+            TvConsole.Instance.WriteLine("4 - Events");
             TvConsole.Instance.WriteLine("0 - Exit");
         }
 
@@ -56,6 +38,7 @@ namespace TvConsole.Sample
                     case '1': MultipleScreenBuffers(); break;
                     case '2': CursorMove(); break;
                     case '3': FontsAndColors(); break;
+                    case '4': MouseEvents(); break;
                     case '0': exit = true; break;
                     default:
                         TvConsole.Instance.WriteLine($"Invalid otion: {key.KeyChar}");
@@ -63,6 +46,37 @@ namespace TvConsole.Sample
                         break;
                 }
             }
+        }
+
+        private static void MouseEvents()
+        {
+            TvConsole.Instance.Cls();
+            TvConsole.Instance.WriteLine("Move the mouse over the window");
+            TvConsole.Instance.DisableInputMode(Win32.ConsoleInputModes.ENABLE_QUICK_EDIT_MODE);
+            var finish = false;
+
+            while (!finish)
+            {
+                var events = TvConsole.Instance.ReadEvents();
+                if (events.HasEvents) { TvConsole.Instance.Cls(); }
+                foreach (var ke in events.KeyboardEvents)
+                {
+                    var info = ke.AsConsoleKeyInfo();
+                    TvConsole.Instance.WriteLine($"{info.KeyChar} ({info.Key.ToString()}). shitft: {(info.Modifiers & ConsoleModifiers.Shift) != 0} down: {ke.IsKeyDown}");
+                    if (ke.AsConsoleKeyInfo().Key == ConsoleKey.Escape)
+                    {
+                        finish = true;
+                    }
+                }
+
+                foreach (var me in events.MouseEvents)
+                {
+
+                    TvConsole.Instance.WriteLine($"Mouse in: ({me.X},{me.Y})");
+                }
+            }
+
+                TvConsole.Instance.EnableInputMode(Win32.ConsoleInputModes.ENABLE_QUICK_EDIT_MODE);
         }
 
         private static void FontsAndColors()
@@ -167,7 +181,8 @@ namespace TvConsole.Sample
 
             foreach (var buffer in buffers) { buffer.Close(); }
 
-            TvConsole.Instance.WriteLine("Press <enter> to continue.");
+            TvConsole.Instance.ActivateDefaultScreenBuffer();
+            TvConsole.Instance.WriteLine("Press <enter> to return to menu.");
             TvConsole.Instance.ReadLine();
         }
     }
