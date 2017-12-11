@@ -10,22 +10,22 @@
         }
         public void Up()
         {
-            _console.Write($"{TvVirtualTerminal.ESC} A");
+            _console.Write($"{TvVirtualTerminal.ESC}A");
         }
 
         public void Down()
         {
-            _console.Write($"{TvVirtualTerminal.ESC} B");
+            _console.Write($"{TvVirtualTerminal.ESC}B");
         }
 
         public void Left()
         {
-            _console.Write($"{TvVirtualTerminal.ESC} D");
+            _console.Write($"{TvVirtualTerminal.ESC}D");
         }
 
         public void Right()
         {
-            _console.Write($"{TvVirtualTerminal.ESC} C");
+            _console.Write($"{TvVirtualTerminal.ESC}C");
         }
     }
 }

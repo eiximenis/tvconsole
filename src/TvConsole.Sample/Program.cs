@@ -73,8 +73,9 @@ namespace TvConsole.Sample
 
                 foreach (var me in events.MouseEvents)
                 {
-
                     TvConsole.Instance.WriteLine($"Mouse in: ({me.X},{me.Y})");
+                    TvConsole.Instance.WriteLine($"Mouse event type: {Enum.GetName(typeof(TvConsoleMouseEventType),me.EventType)}");
+                    TvConsole.Instance.WriteLine($"L: {me.HasButtonPressed(TvMouseButton.LeftButton)} - R {me.HasButtonPressed(TvMouseButton.RightButton)}"); 
                 }
             }
 
