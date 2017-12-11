@@ -13,13 +13,9 @@ namespace TvConsole
         public TvVirtualTerminal(TvConsole console)
         {
             _console = console;
+            Cursor = new TvVirtualTerminalCursor(console);
         }
 
-        public void DrawBorder()
-        {
-            //var str = $"{ESC}(0{CSI}104;93mx{CSI}0m{ESC}(B";
-            _console.Out.Write($"{ESC}[101;93m STYLES [0m");
-        }
-
+        public TvVirtualTerminalCursor Cursor {get;}
     }
 }

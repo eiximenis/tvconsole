@@ -404,7 +404,7 @@ namespace TvConsole.Win32
         OEMClear = 0xFE
     }
 
-    public enum ControlKeyStates
+    public enum ControlKeyStates : uint
     {
         RIGHT_ALT_PRESSED = 0x1,
         LEFT_ALT_PRESSED = 0x2,
@@ -481,7 +481,7 @@ namespace TvConsole.Win32
         [FieldOffset(4)]
         public uint dwButtonState;
         [FieldOffset(8)]
-        public uint dwControlKeyState;
+        public ControlKeyStates dwControlKeyState;
         [FieldOffset(12)]
         public uint dwEventFlags;
     }

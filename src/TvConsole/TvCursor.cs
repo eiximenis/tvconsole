@@ -3,7 +3,7 @@ using TvConsole.Win32;
 
 namespace TvConsole
 {
-    public class TvCursor
+    public class TvCursor : IConsoleCursor
     {
         private IntPtr _hstdout;
 

@@ -20,6 +20,7 @@ namespace TvConsole.Sample
             TvConsole.Instance.WriteLine("2 - Cursor movement");
             TvConsole.Instance.WriteLine("3 - Fonts & colors");
             TvConsole.Instance.WriteLine("4 - Events");
+            TvConsole.Instance.WriteLine("A - Cursor using virtual terminal");
             TvConsole.Instance.WriteLine("0 - Exit");
         }
 
@@ -39,6 +40,7 @@ namespace TvConsole.Sample
                     case '2': CursorMove(); break;
                     case '3': FontsAndColors(); break;
                     case '4': MouseEvents(); break;
+                    case 'a': VirtualTerminalCursor(); break;
                     case '0': exit = true; break;
                     default:
                         TvConsole.Instance.WriteLine($"Invalid otion: {key.KeyChar}");
@@ -102,27 +104,39 @@ namespace TvConsole.Sample
         }
 
 
+        private static void VirtualTerminalCursor()
+        {
+            var vterm = TvConsole.Instance.GetVirtualTerminal();
+            TvConsole.Instance.Write("Welcome to VTerm - Use cursor keys to move the cursor. <Esc> to finish");
+            DoCursorMove(vterm.Cursor);
+        }
+
 
         private static void CursorMove()
         {
             TvConsole.Instance.Cls();
             TvConsole.Instance.WriteLine("Use cursor keys to move the cursor. <Esc> to finish");
+            DoCursorMove(TvConsole.Instance.Cursor);
+        }
+
+        private static void DoCursorMove(IConsoleCursor cursor)
+        { 
             var key = TvConsole.Instance.ReadKey();
             while (key.Key != ConsoleKey.Escape)
             {
                 switch (key.Key)
                 {
                     case ConsoleKey.UpArrow:
-                        TvConsole.Instance.Cursor.Up();
+                        cursor.Up();
                         break;
                     case ConsoleKey.DownArrow:
-                        TvConsole.Instance.Cursor.Down();
+                        cursor.Down();
                         break;
                     case ConsoleKey.LeftArrow:
-                        TvConsole.Instance.Cursor.Left();
+                        cursor.Left();
                         break;
                     case ConsoleKey.RightArrow:
-                        TvConsole.Instance.Cursor.Right();
+                        cursor.Right();
                         break;
                 }
 
