@@ -12,12 +12,12 @@ namespace TvConsole
         private bool _disposed;
         private readonly bool _isDisposable;
 
-        public TvCursor Cursor { get; }
+        public IConsoleCursor Cursor { get; }
 
-        public TvConsoleColor ForeColor(ConsoleColor foreground) => new TvConsoleColor(_hstdout, foreground);
-        public TvConsoleColor BackColor(ConsoleColor background) => new TvConsoleColor(_hstdout, forecolor: null, backColor: background);
-        public TvConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background) => new TvConsoleColor(_hstdout, foreground, background);
-        public TvConsoleColor ColorScope => TvConsoleColor.None(_hstdout);
+        public IConsoleColor ForeColor(ConsoleColor foreground) => new TvConsoleColor(_hstdout, foreground);
+        public IConsoleColor BackColor(ConsoleColor background) => new TvConsoleColor(_hstdout, forecolor: null, backColor: background);
+        public IConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background) => new TvConsoleColor(_hstdout, foreground, background);
+        public IConsoleColor ColorScope => TvConsoleColor.None(_hstdout);
 
         public ConsoleColor BackgroundColor
         {
@@ -54,12 +54,12 @@ namespace TvConsole
 
         public TvConsoleStreamProperties OutProperties { get; }
         public TextWriter Out { get; }
-        public TvScreenBuffer(IntPtr handle, TvConsole owner, bool outputRedirected, bool forceFileApi, bool disposable)
+        public TvScreenBuffer(IntPtr handle, TvConsole owner, bool outputRedirected, bool disposable)
         {
             _hstdout = handle;
             _disposed = false;
             _isDisposable = disposable;
-            OutProperties = new TvConsoleStreamProperties((int)ConsoleNative.GetConsoleOutputCP(), System.Console.OutputEncoding, outputRedirected, forceFileApi);
+            OutProperties = new TvConsoleStreamProperties((int)ConsoleNative.GetConsoleOutputCP(), System.Console.OutputEncoding, outputRedirected);
             Out = new StreamWriter(new TvConsoleStream(_hstdout, FileAccess.ReadWrite, OutProperties.UseFileApis), OutProperties.Encoding) { AutoFlush = true };
             Cursor = new TvCursor(_hstdout);
         }

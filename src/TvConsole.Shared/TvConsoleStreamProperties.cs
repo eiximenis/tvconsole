@@ -10,14 +10,14 @@ namespace TvConsole
         public Encoding Encoding { get; }
 
         public bool IsRedirected { get; }
-        internal bool UseFileApis { get; }
+        public bool UseFileApis { get; }
 
-        public TvConsoleStreamProperties(int cp, Encoding encoding, bool redirected, bool forceFileApis = false)
+        public TvConsoleStreamProperties(int cp, Encoding encoding, bool redirected)
         {
             CodePage = cp;
             Encoding = encoding;
             IsRedirected = redirected;
-            UseFileApis = forceFileApis || (Encoding != Encoding.Unicode || IsRedirected);
+            UseFileApis = Encoding != Encoding.Unicode || IsRedirected;
         }
     }
 }

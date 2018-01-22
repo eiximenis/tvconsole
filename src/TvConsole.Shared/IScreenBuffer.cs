@@ -16,12 +16,12 @@ namespace TvConsole
         void WriteLine();
         void WriteLine(string format, params object[] @params);
 
-        TvCursor Cursor { get; }
+        IConsoleCursor Cursor { get; }
 
-        TvConsoleColor ForeColor(ConsoleColor foreground);
-        TvConsoleColor BackColor(ConsoleColor background);
-        TvConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background);
-        TvConsoleColor ColorScope { get; }
+        IConsoleColor ForeColor(ConsoleColor foreground);
+        IConsoleColor BackColor(ConsoleColor background);
+        IConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background);
+        IConsoleColor ColorScope { get; }
 
         ConsoleColor ForegroundColor { get; set; }
         ConsoleColor BackgroundColor { get; set; }

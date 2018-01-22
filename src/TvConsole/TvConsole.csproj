@@ -2,10 +2,47 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetsLinux>false</TargetsLinux>
+    <TargetsUnix>false</TargetsUnix>
+    <TargetsWindows>false</TargetsWindows>
+    <TargetsOSX>false</TargetsOSX>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(OSGroup)'=='Windows_NT'">
+      <PropertyGroup>
+        <TargetsWindows>true</TargetsWindows>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(OSGroup)'=='Linux'">
+      <PropertyGroup>
+        <TargetsLinux>true</TargetsLinux>
+        <TargetsUnix>true</TargetsUnix>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(OSGroup)'=='OSX'">
+      <PropertyGroup>
+        <TargetsOSX>true</TargetsOSX>
+        <TargetsUnix>true</TargetsUnix>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup Condition="'$(TargetsWindows)'=='true'">
+    <DefineConstants>PLATFORM_WINDOWS;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetsOSX)'=='true'">
+    <DefineConstants>PLATFORM_OSX;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetsLinux)'=='true'">
+    <DefineConstants>PLATFORM_LINUX;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetsUnix)'=='true'">
+    <DefineConstants>PLATFORM_UNIX;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TvConsole.Win32\TvConsole.Win32.csproj" />
+    <ProjectReference Include="..\TvConsole.Shared\TvConsole.Shared.csproj" />
+    <ProjectReference Include="..\TvConsole.Win32\TvConsole.Win32.csproj" Condition="'$(TargetsWindows)'=='true'" />
   </ItemGroup>
-
 </Project>

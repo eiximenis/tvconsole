@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TvConsole.Sample", "TvConso
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{561AB3D5-981D-4C9F-8587-08F64ACDEF0A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TvConsole.Shared", "TvConsole.Shared\TvConsole.Shared.csproj", "{A81115C6-72DF-400A-B1C4-A71ACD57BF70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{9B97A04D-6FFD-4F79-8D11-2E64018165BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B97A04D-6FFD-4F79-8D11-2E64018165BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B97A04D-6FFD-4F79-8D11-2E64018165BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A81115C6-72DF-400A-B1C4-A71ACD57BF70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A81115C6-72DF-400A-B1C4-A71ACD57BF70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A81115C6-72DF-400A-B1C4-A71ACD57BF70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A81115C6-72DF-400A-B1C4-A71ACD57BF70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

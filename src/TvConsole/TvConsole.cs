@@ -6,7 +6,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using TvConsole.Extensions;
+
+#if PLATFORM_WINDOWS
 using TvConsole.Win32;
+using ConsoleShim = TvConsole.Win32.Impl.Win32Console;
+#endif
 
 namespace TvConsole
 {
@@ -20,6 +24,7 @@ namespace TvConsole
         private readonly IntPtr _hstdin;
         private readonly IntPtr _hstdout;
         private ISecondaryScreenBuffer _currentBuffer;
+        private readonly ConsoleShim _shim;
 
 
         private void Destroy()
@@ -31,7 +36,7 @@ namespace TvConsole
 
         static TvConsole()
         {
-            Instance = new TvConsole(allowRedirect: true, forceFileApi: false);
+            Instance = new TvConsole(allowRedirect: true);
         }
 
         public ISecondaryScreenBuffer ActivateNewScreenBuffer()
@@ -61,7 +66,7 @@ namespace TvConsole
                 throw new InvalidOperationException($"Can't create a new screen buffer (err: {err})");
             }
 
-            var newBuffer = new TvScreenBuffer(handle, this, outputRedirected: false, forceFileApi: false, disposable: true);
+            var newBuffer = new TvScreenBuffer(handle, this, outputRedirected: false, disposable: true);
             return newBuffer;
         }
 
@@ -75,7 +80,7 @@ namespace TvConsole
         public TextWriter Out => _currentBuffer.Out;
         public TvConsoleStreamProperties OutProperties => _currentBuffer.OutProperties;
 
-        public TvCursor Cursor => _currentBuffer.Cursor;
+        public IConsoleCursor Cursor => _currentBuffer.Cursor;
 
         public ISecondaryScreenBuffer DefaultBuffer { get; }
 
@@ -95,7 +100,7 @@ namespace TvConsole
             var ok = ConsoleNative.AllocConsole();
             if (ok)
             {
-                Instance = new TvConsole(allowRedirect: true, forceFileApi: false);
+                Instance = new TvConsole(allowRedirect: true);
             }
 
             return ok;
@@ -158,17 +163,17 @@ namespace TvConsole
             return new TvVirtualTerminal(this);
         }
 
-        private TvConsole(bool allowRedirect, bool forceFileApi)
+        private TvConsole(bool allowRedirect)
         {
+            _shim = new ConsoleShim();
             _hstdin = ConsoleNative.GetStdHandle(STDIN);
             _hstdout = ConsoleNative.GetStdHandle(STDOUT);
-
             IsInputRedirected = FileNative.GetFileType(_hstdin) != FILE_TYPE.FILE_TYPE_CHAR;
             IsOutputRedirected = FileNative.GetFileType(_hstdout) != FILE_TYPE.FILE_TYPE_CHAR;
-            DefaultBuffer = new TvScreenBuffer(_hstdout, this, IsOutputRedirected, forceFileApi, disposable: false);
+            DefaultBuffer = new TvScreenBuffer(_hstdout, this, IsOutputRedirected, disposable: false);
             _currentBuffer = DefaultBuffer;
             FontManager = new TvFontManager(_hstdout);
-            InProperties = new TvConsoleStreamProperties((int)ConsoleNative.GetConsoleCP(), System.Console.InputEncoding, IsInputRedirected, forceFileApi);
+            InProperties = new TvConsoleStreamProperties((int)ConsoleNative.GetConsoleCP(), System.Console.InputEncoding, IsInputRedirected);
             In = new StreamReader(new TvConsoleStream(_hstdin, FileAccess.Read, InProperties.UseFileApis), InProperties.Encoding,
                 detectEncodingFromByteOrderMarks: false,
                 bufferSize: 256,
@@ -252,11 +257,10 @@ namespace TvConsole
             }
         }
 
-        public TvConsoleColor ForeColor(ConsoleColor foreground) => _currentBuffer.ForeColor(foreground);
-        public TvConsoleColor BackColor(ConsoleColor background) => _currentBuffer.BackColor(background);
-        public TvConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background) => _currentBuffer.CharacterColor(foreground, background);
-
-        public TvConsoleColor ColorScope => _currentBuffer.ColorScope;
+        public IConsoleColor ForeColor(ConsoleColor foreground) => _currentBuffer.ForeColor(foreground);
+        public IConsoleColor BackColor(ConsoleColor background) => _currentBuffer.BackColor(background);
+        public IConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background) => _currentBuffer.CharacterColor(foreground, background);
+        public IConsoleColor ColorScope => _currentBuffer.ColorScope;
 
         public ConsoleColor ForegroundColor
         {
@@ -299,6 +303,7 @@ namespace TvConsole
                 return TvConsoleEvents.Empty;
             }
         }
+
 
         private INPUT_RECORD ReadConsoleEvent()
         {

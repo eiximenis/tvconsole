@@ -5,7 +5,7 @@ using TvConsole.Win32;
 
 namespace TvConsole
 {
-    public class TvConsoleColor : IDisposable
+    public class TvConsoleColor : IConsoleColor
     {
 
         private const ushort FOREGROUND_BLUE = 0x0001;
@@ -21,8 +21,8 @@ namespace TvConsole
         private readonly IntPtr _hstdout;
         private readonly short _oldAttributes;
 
-        internal TvConsoleColor(IntPtr handle, ConsoleColor? forecolor) : this(handle, forecolor, null) { }
-        internal TvConsoleColor(IntPtr handle, ConsoleColor? forecolor, ConsoleColor? backColor)
+        public TvConsoleColor(IntPtr handle, ConsoleColor? forecolor) : this(handle, forecolor, null) { }
+        public TvConsoleColor(IntPtr handle, ConsoleColor? forecolor, ConsoleColor? backColor)
         {
             _hstdout = handle;
             ConsoleNative.GetConsoleScreenBufferInfo(_hstdout, out CONSOLE_SCREEN_BUFFER_INFO info);
@@ -32,12 +32,12 @@ namespace TvConsole
             ConsoleNative.SetConsoleTextAttribute(_hstdout, attributes);
         }
 
-        internal static ushort OnlyForegroundAttributes(ushort attributes) => (ushort)(attributes & ~(BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY));
-        internal static ushort OnlyBackgroundAttributes(ushort attributes) => (ushort)(attributes & ~(FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY));
+        public static ushort OnlyForegroundAttributes(ushort attributes) => (ushort)(attributes & ~(BACKGROUND_BLUE | BACKGROUND_GREEN | BACKGROUND_RED | BACKGROUND_INTENSITY));
+        public static ushort OnlyBackgroundAttributes(ushort attributes) => (ushort)(attributes & ~(FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY));
 
-        internal static TvConsoleColor None(IntPtr handle) => new TvConsoleColor(handle, forecolor: null, backColor: null);
+        public static TvConsoleColor None(IntPtr handle) => new TvConsoleColor(handle, forecolor: null, backColor: null);
 
-        internal static ConsoleColor AttributesToForeConsoleColor(ushort attributes)
+        public static ConsoleColor AttributesToForeConsoleColor(ushort attributes)
         {
             var onlyFore = OnlyForegroundAttributes(attributes);
             switch (onlyFore)
@@ -64,7 +64,7 @@ namespace TvConsole
             return ConsoleColor.Gray;
         }
 
-        internal static ConsoleColor AttributesToBackConsoleColor(ushort attributes)
+        public static ConsoleColor AttributesToBackConsoleColor(ushort attributes)
         {
             var onlyBack = OnlyBackgroundAttributes(attributes);
             switch (onlyBack)
@@ -95,7 +95,7 @@ namespace TvConsole
             ConsoleNative.SetConsoleTextAttribute(_hstdout, (ushort)_oldAttributes);
         }
 
-        internal static ushort ForeConsoleColorToAttribute(ConsoleColor color)
+        public static ushort ForeConsoleColorToAttribute(ConsoleColor color)
         {
             switch (color)
             {
@@ -136,7 +136,7 @@ namespace TvConsole
             }
         }
 
-        internal static ushort BackConsoleColorToAttribute(ConsoleColor color)
+        public static ushort BackConsoleColorToAttribute(ConsoleColor color)
         {
             switch (color)
             {
