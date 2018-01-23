@@ -6,25 +6,20 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using TvConsole.Extensions;
+using TvConsole.Shared;
 
 #if PLATFORM_WINDOWS
 using TvConsole.Win32;
-using ConsoleShim = TvConsole.Win32.Impl.Win32Console;
 #endif
 
 namespace TvConsole
 {
     public class TvConsole : IScreenBuffer
     {
-        private const int STDIN = -10;
-        private const int STDOUT = -11;
-
         public static TvConsole Instance { get; private set; }
 
-        private readonly IntPtr _hstdin;
-        private readonly IntPtr _hstdout;
         private ISecondaryScreenBuffer _currentBuffer;
-        private readonly ConsoleShim _shim;
+        private readonly IConsolePal _pal;
 
 
         private void Destroy()
@@ -66,7 +61,7 @@ namespace TvConsole
                 throw new InvalidOperationException($"Can't create a new screen buffer (err: {err})");
             }
 
-            var newBuffer = new TvScreenBuffer(handle, this, outputRedirected: false, disposable: true);
+            var newBuffer = new Win32TvScreenBuffer(handle, outputRedirected: false, disposable: true);
             return newBuffer;
         }
 
@@ -82,9 +77,12 @@ namespace TvConsole
 
         public IConsoleCursor Cursor => _currentBuffer.Cursor;
 
-        public ISecondaryScreenBuffer DefaultBuffer { get; }
+        public ISecondaryScreenBuffer DefaultBuffer => _pal.DefaultBuffer;
 
-        public TvFontManager FontManager { get; }
+        public IFontManager FontManager => _pal.FontManager;
+
+        public void EnableMouseSupport() => _pal.EnableMouseSupport();
+        public void DisableMouseSupport() => _pal.DisableMouseSupport();
 
         public void Close()
         {
@@ -106,11 +104,8 @@ namespace TvConsole
             return ok;
         }
 
-        public bool IsInputModeEnabled(ConsoleInputModes modeToCheck)
-        {
-            ConsoleNative.GetConsoleMode(_hstdin, out uint currentMode);
-            return (currentMode & (uint)modeToCheck) == (uint)modeToCheck;
-        }
+
+
 
 
         internal void SetBufferActive(ISecondaryScreenBuffer buffer)
@@ -118,40 +113,8 @@ namespace TvConsole
             _currentBuffer = buffer;
         }
 
-        public void EnableInputMode(ConsoleInputModes modeToEnable)
-        {
-            ConsoleNative.GetConsoleMode(_hstdin, out uint currentMode);
-            var newMode = (uint)currentMode | (uint)modeToEnable;
-            ConsoleNative.SetConsoleMode(_hstdin, newMode);
-        }
 
-        public void DisableInputMode(ConsoleInputModes modeToDisable)
-        {
-            ConsoleNative.GetConsoleMode(_hstdin, out uint currentMode);
-            var newMode = (uint)currentMode & (uint)~modeToDisable;
-            ConsoleNative.SetConsoleMode(_hstdin, newMode);
-        }
-
-        public bool IsOutputModeEnabled(ConsoleOutputModes modeToCheck)
-        {
-            ConsoleNative.GetConsoleMode(_hstdout, out uint currentMode);
-            return (currentMode & (uint)modeToCheck) == (uint)modeToCheck;
-        }
-
-        public void EnableOutputMode(ConsoleOutputModes modeToEnable)
-        {
-            ConsoleNative.GetConsoleMode(_hstdout, out uint currentMode);
-            var newMode = (uint)currentMode | (uint)modeToEnable;
-            ConsoleNative.SetConsoleMode(_hstdout, newMode);
-        }
-
-        public void DisableOutputMode(ConsoleOutputModes modeToDisable)
-        {
-            ConsoleNative.GetConsoleMode(_hstdout, out uint currentMode);
-            var newMode = (uint)currentMode & (uint)~modeToDisable;
-            ConsoleNative.SetConsoleMode(_hstdout, newMode);
-        }
-
+        /*
         public TvVirtualTerminal GetVirtualTerminal()
         {
 
@@ -162,26 +125,18 @@ namespace TvConsole
 
             return new TvVirtualTerminal(this);
         }
+      */
 
         private TvConsole(bool allowRedirect)
         {
-            _shim = new ConsoleShim();
-            _hstdin = ConsoleNative.GetStdHandle(STDIN);
-            _hstdout = ConsoleNative.GetStdHandle(STDOUT);
-            IsInputRedirected = FileNative.GetFileType(_hstdin) != FILE_TYPE.FILE_TYPE_CHAR;
-            IsOutputRedirected = FileNative.GetFileType(_hstdout) != FILE_TYPE.FILE_TYPE_CHAR;
-            DefaultBuffer = new TvScreenBuffer(_hstdout, this, IsOutputRedirected, disposable: false);
-            _currentBuffer = DefaultBuffer;
-            FontManager = new TvFontManager(_hstdout);
             InProperties = new TvConsoleStreamProperties((int)ConsoleNative.GetConsoleCP(), System.Console.InputEncoding, IsInputRedirected);
-            In = new StreamReader(new TvConsoleStream(_hstdin, FileAccess.Read, InProperties.UseFileApis), InProperties.Encoding,
-                detectEncodingFromByteOrderMarks: false,
-                bufferSize: 256,
-                leaveOpen: true);
-
-            var bufferInfo = CONSOLE_SCREEN_BUFFER_INFO_EX.New();
-            var ok = ConsoleNative.GetConsoleScreenBufferInfoEx(_hstdout, ref bufferInfo);
-            var err = Marshal.GetLastWin32Error();
+#if PLATFORM_WINDOWS
+            _pal = new Win32ConsolePal(InProperties);
+#endif
+            IsInputRedirected = _pal.IsInputRedirected;
+            IsOutputRedirected = _pal.IsOutputRedirected;
+            _currentBuffer = _pal.DefaultBuffer;
+            In = _pal.In;
 
             if (!allowRedirect && (IsInputRedirected || IsOutputRedirected))
             {
@@ -201,61 +156,12 @@ namespace TvConsole
 
         public string ReadLine() => In.ReadLine();
 
-        public int ReadFromConsole()
-        {
-            ConsoleNative.ReadConsole(_hstdin, out char character, 1, out IntPtr charsRead, IntPtr.Zero);
-            return charsRead.ToInt32() == 1 ? character : -1;
-        }
 
+        public bool KeyAvailable => _pal.KeyAvaliable;
 
-        public string ReadLineFromConsole() => ReadLineFromConsole(preserveNewLine: false);
-        public string ReadLineFromConsole(bool preserveNewLine)
-        {
-            var sb = new StringBuilder();
-            var buffer = new char[512];
-            var charsRead = ReadChunk(buffer);
-            sb.Append(buffer, 0, charsRead);
-            while (charsRead == buffer.Length)
-            {
-                charsRead = ReadChunk(buffer);
-                sb.Append(buffer, 0, charsRead);
-            }
-            if (!preserveNewLine)
-            {
-                sb.Remove(sb.Length - Environment.NewLine.Length, Environment.NewLine.Length);
-            }
-            return sb.ToString();
-        }
-        public bool KeyAvailable
-        {
-            get
-            {
-                ConsoleNative.GetNumberOfConsoleInputEvents(_hstdin, out uint numEvents);
-                var buffer = new INPUT_RECORD[numEvents];
-                ConsoleNative.PeekConsoleInput(_hstdin, buffer, (uint)buffer.Length, out uint eventsRead);
-                foreach (var record in buffer)
-                {
-                    if (record.EventType == ConsoleEventTypes.KEY_EVENT && record.KeyEvent.bKeyDown && !record.KeyEvent.wVirtualKeyCode.IsModifierKey())
-                    {
-                        return true;
-                    }
-                }
+        public TvConsoleEvents ReadEvents() => _pal.ReadEvents();
 
-                return false;
-            }
-        }
-
-        public ConsoleKeyInfo ReadKey()
-        {
-            while (true)
-            {
-                var evt = ReadConsoleEvent();
-                if (evt.EventType == ConsoleEventTypes.KEY_EVENT && evt.KeyEvent.bKeyDown && !!evt.KeyEvent.wVirtualKeyCode.IsModifierKey())
-                {
-                    return TvConsoleKeyboardEvent.AsConsoleKeyInfo(evt.KeyEvent);
-                }
-            }
-        }
+        public ConsoleKeyInfo ReadKey() => _pal.ReadKey();
 
         public IConsoleColor ForeColor(ConsoleColor foreground) => _currentBuffer.ForeColor(foreground);
         public IConsoleColor BackColor(ConsoleColor background) => _currentBuffer.BackColor(background);
@@ -274,43 +180,6 @@ namespace TvConsole
             set => _currentBuffer.BackgroundColor = value;
         }
 
-
-
-        private int ReadChunk(char[] buffer)
-        {
-            ConsoleNative.ReadConsole(_hstdin, buffer, (uint)buffer.Length, out IntPtr charsRead, IntPtr.Zero);
-            return charsRead.ToInt32();
-        }
-
-        private uint PeekChunk(INPUT_RECORD[] buffer)
-        {
-            ConsoleNative.PeekConsoleInput(_hstdin, buffer, (uint)buffer.Length, out uint eventsRead);
-            return eventsRead;
-        }
-
-        public TvConsoleEvents ReadEvents()
-        {
-            ConsoleNative.GetNumberOfConsoleInputEvents(_hstdin, out uint numEvents);
-
-            if (numEvents > 0)
-            {
-                var buffer = new INPUT_RECORD[numEvents];
-                ConsoleNative.ReadConsoleInput(_hstdin, buffer, (uint)buffer.Length, out uint eventsRead);
-                return new TvConsoleEvents(buffer);
-            }
-            else
-            {
-                return TvConsoleEvents.Empty;
-            }
-        }
-
-
-        private INPUT_RECORD ReadConsoleEvent()
-        {
-            var buffer = new INPUT_RECORD[1];
-            ConsoleNative.ReadConsoleInput(_hstdin, buffer, (uint)buffer.Length, out uint eventsRead);
-            return buffer[0];
-        }
 
     }
 }

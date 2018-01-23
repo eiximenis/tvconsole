@@ -3,11 +3,11 @@ using TvConsole.Win32;
 
 namespace TvConsole
 {
-    public class TvCursor : IConsoleCursor
+    public class Win32TvCursor : IConsoleCursor
     {
         private IntPtr _hstdout;
 
-        internal TvCursor(IntPtr hstdout)
+        public Win32TvCursor(IntPtr hstdout)
         {
             _hstdout = hstdout;
         }

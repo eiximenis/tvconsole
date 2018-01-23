@@ -7,7 +7,7 @@ using TvConsole.Win32;
 
 namespace TvConsole
 {
-    public class TvConsoleStream : Stream
+    public class Win32TvConsoleStream : Stream
     {
         private readonly IntPtr _handle;
         private readonly bool _useFileApi;
@@ -16,7 +16,7 @@ namespace TvConsole
         public override bool CanSeek => false;
         public override bool CanWrite { get; }
 
-        public TvConsoleStream(IntPtr handle, FileAccess access, bool useFileApi)
+        public Win32TvConsoleStream(IntPtr handle, FileAccess access, bool useFileApi)
         {
             CanRead = ((access & FileAccess.Read) == FileAccess.Read);
             CanWrite = ((access & FileAccess.Write) == FileAccess.Write);

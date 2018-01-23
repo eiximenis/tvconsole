@@ -4,7 +4,7 @@ using TvConsole.Win32;
 
 namespace TvConsole
 {
-    public class TvFontManager
+    public class Win32TvFontManager : IFontManager
     {
         private IntPtr _handle;
 
@@ -15,7 +15,7 @@ namespace TvConsole
         private CONSOLE_FONT_INFOEX _fontInfo;
 
 
-        public TvFontManager(IntPtr handle)
+        public Win32TvFontManager(IntPtr handle)
         {
             _handle = handle;
             _fontInfo = new CONSOLE_FONT_INFOEX();

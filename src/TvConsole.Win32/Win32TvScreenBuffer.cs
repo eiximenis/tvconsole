@@ -6,7 +6,7 @@ using TvConsole.Win32;
 
 namespace TvConsole
 {
-    public class TvScreenBuffer : ISecondaryScreenBuffer, IDisposable
+    public class Win32TvScreenBuffer : ISecondaryScreenBuffer, IDisposable
     {
         private IntPtr _hstdout;
         private bool _disposed;
@@ -54,14 +54,14 @@ namespace TvConsole
 
         public TvConsoleStreamProperties OutProperties { get; }
         public TextWriter Out { get; }
-        public TvScreenBuffer(IntPtr handle, TvConsole owner, bool outputRedirected, bool disposable)
+        public Win32TvScreenBuffer(IntPtr handle, bool outputRedirected, bool disposable)
         {
             _hstdout = handle;
             _disposed = false;
             _isDisposable = disposable;
             OutProperties = new TvConsoleStreamProperties((int)ConsoleNative.GetConsoleOutputCP(), System.Console.OutputEncoding, outputRedirected);
-            Out = new StreamWriter(new TvConsoleStream(_hstdout, FileAccess.ReadWrite, OutProperties.UseFileApis), OutProperties.Encoding) { AutoFlush = true };
-            Cursor = new TvCursor(_hstdout);
+            Out = new StreamWriter(new Win32TvConsoleStream(_hstdout, FileAccess.ReadWrite, OutProperties.UseFileApis), OutProperties.Encoding) { AutoFlush = true };
+            Cursor = new Win32TvCursor(_hstdout);
         }
         public void WriteLine(string message)
         {
@@ -106,7 +106,7 @@ namespace TvConsole
             }
         }
 
-        ~TvScreenBuffer()
+        ~Win32TvScreenBuffer()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             if (_isDisposable)

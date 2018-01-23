@@ -40,7 +40,7 @@ namespace TvConsole.Sample
                     case '2': CursorMove(); break;
                     case '3': FontsAndColors(); break;
                     case '4': MouseEvents(); break;
-                    case 'a': VirtualTerminalCursor(); break;
+                    //case 'a': VirtualTerminalCursor(); break;
                     case '0': exit = true; break;
                     default:
                         TvConsole.Instance.WriteLine($"Invalid otion: {key.KeyChar}");
@@ -54,7 +54,7 @@ namespace TvConsole.Sample
         {
             TvConsole.Instance.Cls();
             TvConsole.Instance.WriteLine("Move the mouse over the window");
-            TvConsole.Instance.DisableInputMode(Win32.ConsoleInputModes.ENABLE_QUICK_EDIT_MODE);
+            TvConsole.Instance.EnableMouseSupport();
             var finish = false;
 
             while (!finish)
@@ -74,12 +74,12 @@ namespace TvConsole.Sample
                 foreach (var me in events.MouseEvents)
                 {
                     TvConsole.Instance.WriteLine($"Mouse in: ({me.X},{me.Y})");
-                    TvConsole.Instance.WriteLine($"Mouse event type: {Enum.GetName(typeof(TvConsoleMouseEventType),me.EventType)}");
-                    TvConsole.Instance.WriteLine($"L: {me.HasButtonPressed(TvMouseButton.LeftButton)} - R {me.HasButtonPressed(TvMouseButton.RightButton)}"); 
+                    TvConsole.Instance.WriteLine($"Mouse event type: {Enum.GetName(typeof(TvConsoleMouseEventType), me.EventType)}");
+                    TvConsole.Instance.WriteLine($"L: {me.HasButtonPressed(TvMouseButton.LeftButton)} - R {me.HasButtonPressed(TvMouseButton.RightButton)}");
                 }
             }
 
-                TvConsole.Instance.EnableInputMode(Win32.ConsoleInputModes.ENABLE_QUICK_EDIT_MODE);
+            TvConsole.Instance.DisableMouseSupport();
         }
 
         private static void FontsAndColors()
@@ -105,12 +105,14 @@ namespace TvConsole.Sample
         }
 
 
+        /*
         private static void VirtualTerminalCursor()
         {
             var vterm = TvConsole.Instance.GetVirtualTerminal();
             TvConsole.Instance.Write("Welcome to VTerm - Use cursor keys to move the cursor. <Esc> to finish");
             DoCursorMove(vterm.Cursor);
         }
+        */
 
 
         private static void CursorMove()
@@ -121,7 +123,7 @@ namespace TvConsole.Sample
         }
 
         private static void DoCursorMove(IConsoleCursor cursor)
-        { 
+        {
             var key = TvConsole.Instance.ReadKey();
             while (key.Key != ConsoleKey.Escape)
             {
