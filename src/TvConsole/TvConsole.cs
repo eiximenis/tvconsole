@@ -150,7 +150,9 @@ namespace TvConsole
         public void WriteLine(string format, params object[] @params) => _currentBuffer.WriteLine(format, @params);
         public void WriteLine() => _currentBuffer.WriteLine();
 
-
+        public void WriteCharacterAt(int x, int y, char character, int count = 1) => _currentBuffer.WriteCharacterAt(x, y, character, count);
+        public void WriteCharacterAt(int x, int y, char character, ConsoleColor foreColor, ConsoleColor backColor, int count = 1) =>
+            _currentBuffer.WriteCharacterAt(x, y, character, foreColor, backColor, count);
 
         public int Read() => In.Read();
 
@@ -166,6 +168,9 @@ namespace TvConsole
         public IConsoleColor ForeColor(ConsoleColor foreground) => _currentBuffer.ForeColor(foreground);
         public IConsoleColor BackColor(ConsoleColor background) => _currentBuffer.BackColor(background);
         public IConsoleColor CharacterColor(ConsoleColor foreground, ConsoleColor background) => _currentBuffer.CharacterColor(foreground, background);
+
+
+
         public IConsoleColor ColorScope => _currentBuffer.ColorScope;
 
         public ConsoleColor ForegroundColor

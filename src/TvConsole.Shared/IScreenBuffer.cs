@@ -26,6 +26,9 @@ namespace TvConsole
         ConsoleColor ForegroundColor { get; set; }
         ConsoleColor BackgroundColor { get; set; }
 
+        void WriteCharacterAt(int x, int y, char character, int count = 1);
+        void WriteCharacterAt(int x, int y, char character, ConsoleColor foreColor, ConsoleColor backColor, int count = 1);
+
     }
 
     public interface ISecondaryScreenBuffer : IScreenBuffer, IDisposable

@@ -135,5 +135,20 @@ namespace TvConsole
             ConsoleNative.FillConsoleOutputAttribute(_hstdout, (ushort)info.wAttributes, (uint)numChars, curPos, out var attrsWritten);
             ConsoleNative.SetConsoleCursorPosition(_hstdout, curPos);
         }
+
+        public void WriteCharacterAt(int x, int y, char character, int count = 1)
+        {
+            ConsoleNative.FillConsoleOutputCharacter(_hstdout, character, (uint)count, new COORD((short)x,(short)y), out var numWritten);
+        }
+
+        public void WriteCharacterAt(int x, int y, char character, ConsoleColor foreColor, ConsoleColor backColor, int count = 1)
+        {
+            var coord = new COORD((short)x, (short)y);
+
+            var attribute = (ushort)(TvConsoleColor.ForeConsoleColorToAttribute(foreColor) | TvConsoleColor.BackConsoleColorToAttribute(backColor));
+
+            ConsoleNative.FillConsoleOutputAttribute(_hstdout, attribute, (uint)count, coord, out var numAttrWritten);
+            ConsoleNative.FillConsoleOutputCharacter(_hstdout, character, (uint)count, coord, out var numWritten);
+        }
     }
 }

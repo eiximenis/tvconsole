@@ -20,7 +20,8 @@ namespace TvConsole.Sample
             TvConsole.Instance.WriteLine("2 - Cursor movement");
             TvConsole.Instance.WriteLine("3 - Fonts & colors");
             TvConsole.Instance.WriteLine("4 - Events");
-            TvConsole.Instance.WriteLine("A - Cursor using virtual terminal");
+            TvConsole.Instance.WriteLine("5 - Write Character At");
+            // TvConsole.Instance.WriteLine("A - Cursor using virtual terminal");
             TvConsole.Instance.WriteLine("0 - Exit");
         }
 
@@ -40,6 +41,7 @@ namespace TvConsole.Sample
                     case '2': CursorMove(); break;
                     case '3': FontsAndColors(); break;
                     case '4': MouseEvents(); break;
+                    case '5': WriteCharacterAt(); break;
                     //case 'a': VirtualTerminalCursor(); break;
                     case '0': exit = true; break;
                     default:
@@ -202,5 +204,22 @@ namespace TvConsole.Sample
             TvConsole.Instance.WriteLine("Press <enter> to return to menu.");
             TvConsole.Instance.ReadLine();
         }
+
+        private static void WriteCharacterAt()
+        {
+            var colors = Enum.GetValues(typeof(ConsoleColor)).Cast<ConsoleColor>();
+            var row = 1;
+            var col = 1;
+            foreach (var fcolor in colors)
+            {
+                foreach (var bcolor in colors)
+                {
+                    TvConsole.Instance.WriteCharacterAt(col, row, '#', fcolor, bcolor, 2);
+                    col+=2;
+                }
+                col = 1;
+                row++;
+            }
+          }
     }
 }
